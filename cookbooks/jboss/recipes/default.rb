@@ -41,8 +41,8 @@ systemd_unit 'jboss.service' do
 
   User=jboss
   Group=jboss
-  ExecStart=/bin/bash -c 'nohup /opt/jboss/bin/run.sh -b 192.168.44.45 &'
-  ExecStop=/bin/bash -c 'bin/shutdown.sh -s 192.168.44.45 -u admin'
+  ExecStart=/bin/bash -c 'nohup /opt/jboss/bin/run.sh -b  #{node[:network][:interfaces][:enp0s8][:addresses].detect{|k,v| v[:family] == "inet" }.first} &'
+  ExecStop=/bin/bash -c 'bin/shutdown.sh -s #{node[:network][:interfaces][:enp0s8][:addresses].detect{|k,v| v[:family] == "inet" }.first} -u admin'
   TimeoutStartSec=300
   TimeoutStopSec=600
   SuccessExitStatus=143
@@ -58,7 +58,22 @@ service 'jboss' do
   action [ :enable, :start ]
 end
 
+#server.xml template
+data = data_bag_item('sumka','jb_port')
+template '/opt/jboss/server/default/deploy/jbossweb.sar/server.xml' do
+  source "server.xml.erb"
+  owner 'jboss'
+  group 'jboss'
+  variables( akoport: data['port'])
+  mode 0644
+end
+
 #deploy sample app
 remote_file '/opt/jboss/server/default/deploy/sample.war' do
-  source 'https://tomcat.apache.org/tomcat-7.0-doc/appdev/sample/sample.war'
+  source "#{node['application repo']}"
+end
+
+#restart
+service 'jboss' do
+  action :restart
 end
