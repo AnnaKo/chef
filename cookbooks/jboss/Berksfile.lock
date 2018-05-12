@@ -1,0 +1,14 @@
+DEPENDENCIES
+  java (~> 2.0.1)
+  jboss
+    path: .
+    metadata: true
+
+GRAPH
+  homebrew (5.0.4)
+  java (2.0.1)
+    homebrew (>= 0.0.0)
+    windows (>= 0.0.0)
+  jboss (0.1.0)
+    java (>= 0.0.0)
+  windows (4.2.2)
